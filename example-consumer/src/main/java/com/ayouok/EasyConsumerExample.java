@@ -1,6 +1,7 @@
 package com.ayouok;
 
 import com.ayouok.model.User;
+import com.ayouok.proxy.ServiceProxyFactory;
 import com.ayouok.service.UserService;
 
 /**
@@ -10,8 +11,7 @@ import com.ayouok.service.UserService;
 public class EasyConsumerExample {
 
     public static void main(String[] args) {
-        // todo 需要获取 UserService 的实现类对象
-        UserService userService = null;
+        UserService userService = ServiceProxyFactory.getProxy(UserService.class);
         User user = new User();
         user.setName("yupi");
         // 调用

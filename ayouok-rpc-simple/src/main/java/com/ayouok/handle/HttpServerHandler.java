@@ -53,11 +53,13 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
                 //设置返回值
                 rpcResponse.setData(result);
                 rpcResponse.setDataType(result.getClass());
+                rpcResponse.setMessage("ok");
             } catch (Exception e) {
                 e.printStackTrace();
                 rpcResponse.setMessage(rpcRequest.getMethodName());
                 rpcResponse.setException(e);
             }
+            doResponse(httpServerRequest, rpcResponse, jdkSerializer);
         });
     }
 

@@ -19,7 +19,8 @@ public class ServiceProxy implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         JdkSerializer jdkSerializer = new JdkSerializer();
         RpcRequest rpcRequest = RpcRequest.builder()
-                .methodName(method.getDeclaringClass().getName())
+                .serviceName(method.getDeclaringClass().getName())
+                .methodName(method.getName())
                 .parameterTypes(method.getParameterTypes())
                 .args(args)
                 .build();

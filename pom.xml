@@ -14,6 +14,7 @@
     <module>example-provider</module>
     <module>example-common</module>
     <module>ayouok-rpc-simple</module>
+    <module>ayouok-rpc-core</module>
   </modules>
 
   <properties>

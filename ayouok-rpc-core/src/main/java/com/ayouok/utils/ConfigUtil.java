@@ -4,7 +4,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.dialect.Props;
 import org.yaml.snakeyaml.Yaml;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -68,7 +67,7 @@ public class ConfigUtil {
         try {
             Yaml yaml = new Yaml();
             //获取配置文件中的map集合
-            Map<String, Object> yamlMap = yaml.loadAs(FileUtil.readUtf8String(configPath), HashMap.class);
+            HashMap<String, Object> yamlMap = yaml.loadAs(FileUtil.readUtf8String(configPath), HashMap.class);
             return mapToBean(yamlMap, tClass, prefix);
         } catch (Exception e) {
             throw new ConfigurationLoadException("Failed to load YAML configuration from " + configPath, e);

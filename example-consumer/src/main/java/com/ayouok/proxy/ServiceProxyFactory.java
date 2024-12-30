@@ -20,7 +20,7 @@ public class ServiceProxyFactory {
                     new Class[]{serviceClass},
                     new ServiceProxy());
             return proxyInstance;
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to create proxy for " + serviceClass.getName(), e);
         }
     }

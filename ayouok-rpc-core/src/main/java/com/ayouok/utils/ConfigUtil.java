@@ -67,8 +67,9 @@ public class ConfigUtil {
         try {
             Yaml yaml = new Yaml();
             //获取配置文件中的map集合
-            HashMap<String, Object> yamlMap = yaml.loadAs(FileUtil.readUtf8String(configPath), HashMap.class);
-            return mapToBean(yamlMap, tClass, prefix);
+            HashMap<String, Object> yamlMap1 = yaml.loadAs(FileUtil.readUtf8String(configPath), HashMap.class);
+            HashMap<String, Object> yamlMap2 = (HashMap) yamlMap1.get(prefix);
+            return mapToBean(yamlMap2, tClass, prefix);
         } catch (Exception e) {
             throw new ConfigurationLoadException("Failed to load YAML configuration from " + configPath, e);
         }
@@ -79,13 +80,24 @@ public class ConfigUtil {
             Constructor<?> constructor = tClass.getDeclaredConstructor();
             constructor.setAccessible(true);
             T instance = (T) constructor.newInstance();
-
             for (Field field : tClass.getDeclaredFields()) {
                 field.setAccessible(true);
-                String fieldName = prefix.isEmpty() ? field.getName() : prefix + "." + field.getName();
+                String fieldName = field.getName();
                 Object value = yamlMap.get(fieldName);
                 if (value != null) {
-                    field.set(instance, value);
+                    Class<?> fieldType = field.getType();
+                    if (fieldType == String.class) {
+                        field.set(instance, String.valueOf(value));
+                    } else if (fieldType == int.class || fieldType == Integer.class) {
+                        field.set(instance, value);
+                    } else if (fieldType == double.class || fieldType == Double.class) {
+                        field.set(instance, value);
+                    } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+                        field.set(instance, Boolean.valueOf(String.valueOf(value)));
+                    } else {
+                        // 处理其他类型或抛出异常
+                        throw new IllegalArgumentException("Unsupported field type: " + fieldType);
+                    }
                 }
             }
             return instance;

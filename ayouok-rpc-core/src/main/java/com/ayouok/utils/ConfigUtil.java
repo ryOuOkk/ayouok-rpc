@@ -1,7 +1,13 @@
 package com.ayouok.utils;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.dialect.Props;
+import org.yaml.snakeyaml.Yaml;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author dxn
@@ -34,8 +40,91 @@ public class ConfigUtil {
         if (StrUtil.isNotBlank(environment)) {
             configFileBuilder.append("-").append(environment);
         }
-        configFileBuilder.append(".properties");
-        Props props = new Props(configFileBuilder.toString());
-        return props.toBean(tClass, prefix);
+        //三种配置文件
+        String ymlConfig = configFileBuilder + ".yml";
+        String yamlConfig = configFileBuilder + ".yaml";
+        String propertiesConfig = configFileBuilder + ".properties";
+        //判断三种配置文件是否存在
+        boolean existYml = FileUtil.exist(ymlConfig);
+        boolean existYaml = FileUtil.exist(yamlConfig);
+        boolean existProperties = FileUtil.exist(propertiesConfig);
+
+        if (existYml) {
+            //yml文件
+            return loadYamlConfig(ymlConfig, tClass, prefix);
+        } else if (existYaml) {
+            //yaml文件
+            return loadYamlConfig(yamlConfig, tClass, prefix);
+        } else if (existProperties) {
+            //properties文件
+            return loadPropertiesConfig(propertiesConfig, tClass, prefix);
+        } else {
+            throw new ConfigurationNotFoundException("No configuration file found for environment: " + environment);
+        }
+    }
+
+    private static <T> T loadYamlConfig(String configPath, Class<?> tClass, String prefix) {
+        try {
+            Yaml yaml = new Yaml();
+            //获取配置文件中的map集合
+            HashMap<String, Object> yamlMap1 = yaml.loadAs(FileUtil.readUtf8String(configPath), HashMap.class);
+            HashMap<String, Object> yamlMap2 = (HashMap) yamlMap1.get(prefix);
+            return mapToBean(yamlMap2, tClass, prefix);
+        } catch (Exception e) {
+            throw new ConfigurationLoadException("Failed to load YAML configuration from " + configPath, e);
+        }
+    }
+
+    private static <T> T mapToBean(Map<String, Object> yamlMap, Class<?> tClass, String prefix) {
+        try {
+            Constructor<?> constructor = tClass.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            T instance = (T) constructor.newInstance();
+            for (Field field : tClass.getDeclaredFields()) {
+                field.setAccessible(true);
+                String fieldName = field.getName();
+                Object value = yamlMap.get(fieldName);
+                if (value != null) {
+                    Class<?> fieldType = field.getType();
+                    if (fieldType == String.class) {
+                        field.set(instance, String.valueOf(value));
+                    } else if (fieldType == int.class || fieldType == Integer.class) {
+                        field.set(instance, value);
+                    } else if (fieldType == double.class || fieldType == Double.class) {
+                        field.set(instance, value);
+                    } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+                        field.set(instance, Boolean.valueOf(String.valueOf(value)));
+                    } else {
+                        // 处理其他类型或抛出异常
+                        throw new IllegalArgumentException("Unsupported field type: " + fieldType);
+                    }
+                }
+            }
+            return instance;
+        } catch (Exception e) {
+            throw new ConfigurationLoadException("Failed to map YAML to bean", e);
+        }
+    }
+
+    private static <T> T loadPropertiesConfig(String configPath, Class<?> tClass, String prefix) {
+        try {
+            Props props = new Props(configPath);
+            return (T) props.toBean(tClass, prefix);
+        } catch (Exception e) {
+            throw new ConfigurationLoadException("Failed to load properties configuration", e);
+        }
+    }
+
+    // 自定义异常类
+    public static class ConfigurationNotFoundException extends RuntimeException {
+        public ConfigurationNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    public static class ConfigurationLoadException extends RuntimeException {
+        public ConfigurationLoadException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

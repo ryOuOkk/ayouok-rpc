@@ -15,6 +15,7 @@ public class EasyConsumerExample {
         User user = new User();
         user.setName("yupi");
         Integer number = userService.getNumber();
+        System.out.println(number);
         // 调用
         User newUser = userService.getUser(user);
         if (newUser != null) {

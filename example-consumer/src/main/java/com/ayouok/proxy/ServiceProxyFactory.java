@@ -1,6 +1,7 @@
 package com.ayouok.proxy;
 
 
+import com.ayouok.RpcApplication;
 import com.ayouok.config.RpcConfig;
 
 import java.lang.reflect.Proxy;
@@ -15,7 +16,7 @@ public class ServiceProxyFactory {
         if (serviceClass == null) {
             throw new IllegalArgumentException("serviceClass cannot be null");
         }
-        if (){
+        if (RpcApplication.getRpcConfig().getMock()){
             return getMockProxy(serviceClass);
         }
 

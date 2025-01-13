@@ -33,6 +33,6 @@ public class RpcConfig {
     /**
      * 是否开启mock
      */
-    private boolean mock = false;
+    private Boolean mock = false;
 
 }

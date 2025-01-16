@@ -1,5 +1,6 @@
 package com.ayouok.config;
 
+import com.ayouok.serializer.SerializerKeys;
 import lombok.Data;
 
 /**
@@ -34,5 +35,10 @@ public class RpcConfig {
      * 是否开启mock
      */
     private Boolean mock = false;
+
+    /**
+     * 序列化器
+     */
+    private String serializer = SerializerKeys.JDK;
 
 }

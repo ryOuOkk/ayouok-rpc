@@ -2,9 +2,11 @@ package com.ayouok.proxy;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
+import com.ayouok.RpcApplication;
 import com.ayouok.model.RpcRequest;
 import com.ayouok.model.RpcResponse;
-import com.ayouok.serializer.JdkSerializer;
+import com.ayouok.serializer.Serializer;
+import com.ayouok.serializer.SerializerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -15,22 +17,23 @@ import java.lang.reflect.Method;
  * @apiNote
  */
 public class ServiceProxy implements InvocationHandler {
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        JdkSerializer jdkSerializer = new JdkSerializer();
+        Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
         RpcRequest rpcRequest = RpcRequest.builder()
                 .serviceName(method.getDeclaringClass().getName())
                 .methodName(method.getName())
                 .parameterTypes(method.getParameterTypes())
                 .args(args)
                 .build();
-        byte[] requestBytes = jdkSerializer.serialize(rpcRequest);
+        byte[] requestBytes = serializer.serialize(rpcRequest);
         try {
             HttpResponse response = HttpRequest.post("http://localhost:8080")
                     .body(requestBytes)
                     .execute();
             byte[] responseBodys = response.bodyBytes();
-            RpcResponse rpcResponse = jdkSerializer.deserialize(responseBodys, RpcResponse.class);
+            RpcResponse rpcResponse = serializer.deserialize(responseBodys, RpcResponse.class);
             return rpcResponse.getData();
         } catch (Exception e) {
             e.printStackTrace();

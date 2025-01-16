@@ -1,11 +1,12 @@
 package com.ayouok.handle;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.ayouok.RpcApplication;
 import com.ayouok.model.RpcRequest;
 import com.ayouok.model.RpcResponse;
 import com.ayouok.registry.LocalRegistry;
-import com.ayouok.serializer.JdkSerializer;
 import com.ayouok.serializer.Serializer;
+import com.ayouok.serializer.SerializerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
@@ -22,12 +23,12 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        JdkSerializer jdkSerializer = new JdkSerializer();
+        Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
         httpServerRequest.bodyHandler(buffer -> {
             // 反序列化
             RpcRequest rpcRequest = null;
             try {
-                rpcRequest = jdkSerializer.deserialize(buffer.getBytes(), RpcRequest.class);
+                rpcRequest = serializer.deserialize(buffer.getBytes(), RpcRequest.class);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -36,12 +37,12 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
             if (ObjectUtil.isEmpty(rpcRequest)) {
                 //如果为null,直接返回
                 rpcResponse.setMessage("请求为空");
-                doResponse(httpServerRequest, rpcResponse, jdkSerializer);
+                doResponse(httpServerRequest, rpcResponse, serializer);
             }
             if (ObjectUtil.isEmpty(rpcRequest.getServiceName())) {
                 //如果为null,直接返回
                 rpcResponse.setMessage("请求为空");
-                doResponse(httpServerRequest, rpcResponse, jdkSerializer);
+                doResponse(httpServerRequest, rpcResponse, serializer);
             }
             //获取class对象
             Class<?> serviceClass = LocalRegistry.get(rpcRequest.getServiceName());
@@ -59,7 +60,7 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
                 rpcResponse.setMessage(rpcRequest.getMethodName());
                 rpcResponse.setException(e);
             }
-            doResponse(httpServerRequest, rpcResponse, jdkSerializer);
+            doResponse(httpServerRequest, rpcResponse, serializer);
         });
     }
 

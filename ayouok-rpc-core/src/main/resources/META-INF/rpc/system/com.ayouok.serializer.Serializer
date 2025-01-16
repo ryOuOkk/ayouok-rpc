@@ -1,0 +1,4 @@
+jdk=com.ayouok.serializer.JdkSerializer
+hessian=com.ayouok.serializer.HessianSerializer
+json=com.ayouok.serializer.JsonSerializer
+kryo=com.ayouok.serializer.KryoSerializer

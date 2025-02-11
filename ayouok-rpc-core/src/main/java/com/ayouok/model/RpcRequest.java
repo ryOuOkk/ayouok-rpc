@@ -1,5 +1,6 @@
 package com.ayouok.model;
 
+import com.ayouok.constant.RpcConstant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import java.io.Serializable;
 
 /**
  * RPC 请求
+ * @author ayouokk
  */
 @Data
 @Builder
@@ -20,7 +22,10 @@ public class RpcRequest implements Serializable {
      * 服务名称
      */
     private String serviceName;
-
+    /**
+     * 服务版本
+     */
+    private String serviceVersion = RpcConstant.DEFAULT_SERVICE_VERSION;
     /**
      * 方法名称
      */

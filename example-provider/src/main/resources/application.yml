@@ -2,3 +2,5 @@ rpc:
   name: ayouok
   version: 2.0
   serializer: json
+  serverHost: 127.0.0.1
+  serverPort: 8080

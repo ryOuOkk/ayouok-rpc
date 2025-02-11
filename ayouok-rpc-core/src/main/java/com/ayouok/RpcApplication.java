@@ -1,8 +1,11 @@
 package com.ayouok;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.ayouok.config.RegistryConfig;
 import com.ayouok.config.RpcConfig;
 import com.ayouok.constant.RpcConstant;
+import com.ayouok.registry.Registry;
+import com.ayouok.registry.RegistryFactory;
 import com.ayouok.utils.ConfigUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +27,9 @@ public class RpcApplication {
      */
     public static void init (RpcConfig newRpcConfig) {
         rpcConfig = newRpcConfig;
-        log.info("RpcApplication init");
+        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
+        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
+        registry.init(registryConfig);
     }
 
     /**

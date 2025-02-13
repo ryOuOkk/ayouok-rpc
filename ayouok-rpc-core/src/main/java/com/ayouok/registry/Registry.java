@@ -12,6 +12,7 @@ import java.util.List;
  */
 public interface Registry {
 
+
     /**
      * 服务初始化
      */
@@ -32,4 +33,9 @@ public interface Registry {
      * 服务销毁
      */
     void destroy();
+
+    /**
+     * 心跳检测
+     */
+    void heartbeat();
 }

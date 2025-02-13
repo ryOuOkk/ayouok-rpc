@@ -1,17 +1,24 @@
 package com.ayouok.registry.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.cron.CronUtil;
 import cn.hutool.cron.task.Task;
 import cn.hutool.json.JSONUtil;
 import com.ayouok.config.RegistryConfig;
 import com.ayouok.model.ServiceMetaInfo;
 import com.ayouok.registry.Registry;
+import com.ayouok.registry.RegistryServiceCache;
 import io.etcd.jetcd.*;
 import io.etcd.jetcd.kv.DeleteResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.options.WatchOption;
+import io.etcd.jetcd.watch.WatchEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 
+import java.awt.image.ImageFilter;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashSet;
@@ -34,12 +41,18 @@ public class EtcdRegistry implements Registry {
      * 本机注册的节点 key 集合（用于维护续期）
      */
     private final Set<String> LOCAL_REGISTER_NODE_KEY_SET = new HashSet<>();
+    /**
+     * 监听节点 key 集合
+     */
+    private final ConcurrentHashSet<String> WATCH_NODE_KEY_SET = new ConcurrentHashSet<>();
 
 
     /**
      * 根节点
      */
     private static final String ETCD_ROOT_PATH = "/rpc/";
+
+    private static final RegistryServiceCache REGISTRY_SERVICE_CACHE = new RegistryServiceCache();
 
     @Override
     public void init(RegistryConfig registryConfig) {
@@ -100,15 +113,22 @@ public class EtcdRegistry implements Registry {
     @Override
     public List<ServiceMetaInfo> serviceDiscovery(String serviceKey) {
         try {
+            //先从缓存中获取
+            if (CollectionUtil.isNotEmpty(REGISTRY_SERVICE_CACHE.readCache())) {
+                return REGISTRY_SERVICE_CACHE.readCache();
+            }
             String searchPrefix = ETCD_ROOT_PATH + serviceKey;
             GetOption option = GetOption.builder().isPrefix(true).build();
             List<KeyValue> kvs = kvClient.get(ByteSequence.from(searchPrefix, StandardCharsets.UTF_8), option).get().getKvs();
-            List<ServiceMetaInfo> serviceMetaInfoList =  kvs.stream()
+            List<ServiceMetaInfo> serviceMetaInfoList = kvs.stream()
                     .map(kv -> {
+                        watch(kv.getKey().toString(StandardCharsets.UTF_8));
                         String value = kv.getValue().toString(StandardCharsets.UTF_8);
                         return JSONUtil.toBean(value, ServiceMetaInfo.class);
                     }).collect(Collectors.toList());
             log.info("服务发现：{}", JSONUtil.toJsonStr(serviceMetaInfoList));
+            //将服务信息写入缓存
+            REGISTRY_SERVICE_CACHE.writeCache(serviceMetaInfoList);
             return serviceMetaInfoList;
         } catch (Exception e) {
             log.error("服务发现失败：{}", serviceKey);
@@ -172,5 +192,28 @@ public class EtcdRegistry implements Registry {
         CronUtil.setMatchSecond(true);
         CronUtil.start();
         log.info("心跳检测启动");
+    }
+
+    @Override
+    public void watch(String serviceNodeKey) {
+        Watch watchClient = client.getWatchClient();
+        boolean isNewWatch = WATCH_NODE_KEY_SET.add(serviceNodeKey);
+        if (isNewWatch) {
+            watchClient.watch(ByteSequence.from(serviceNodeKey, StandardCharsets.UTF_8), response -> {
+                        for (WatchEvent event : response.getEvents()) {
+                            switch (event.getEventType()) {
+                                case PUT:
+                                    log.info("节点{}新增或修改", serviceNodeKey);
+                                    break;
+                                case DELETE:
+                                    log.info("节点{}删除", serviceNodeKey);
+                                    REGISTRY_SERVICE_CACHE.clearCache();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    });
+        }
     }
 }

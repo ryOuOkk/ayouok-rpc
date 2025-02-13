@@ -7,6 +7,7 @@ import com.ayouok.config.RegistryConfig;
 import com.ayouok.model.ServiceMetaInfo;
 import com.ayouok.registry.Registry;
 import io.etcd.jetcd.*;
+import io.etcd.jetcd.kv.DeleteResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
 import lombok.extern.slf4j.Slf4j;
@@ -116,10 +117,20 @@ public class EtcdRegistry implements Registry {
     }
 
     /**
-     * 注册中心销毁
+     * 服务下线
      */
     @Override
     public void destroy() {
+        //遍历本节点所有服务
+        for (String nodeKey : LOCAL_REGISTER_NODE_KEY_SET) {
+            try {
+                //删除节点
+                kvClient.delete(ByteSequence.from(nodeKey, StandardCharsets.UTF_8)).get();
+            } catch (Exception e) {
+                log.error("服务：{}下线失败", nodeKey);
+                throw new RuntimeException(nodeKey + "删除失败", e);
+            }
+        }
         if (kvClient != null) {
             kvClient.close();
         }

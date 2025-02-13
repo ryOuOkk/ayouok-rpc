@@ -30,6 +30,8 @@ public class RpcApplication {
         RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
         Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
         registry.init(registryConfig);
+        //注册JVM关闭钩子，在程序退出时调用注册中心的销毁方法
+        Runtime.getRuntime().addShutdownHook(new Thread(registry::destroy));
     }
 
     /**

@@ -6,9 +6,8 @@ import com.ayouok.model.ServiceMetaInfo;
 import com.ayouok.registry.LocalRegistry;
 import com.ayouok.registry.Registry;
 import com.ayouok.registry.RegistryFactory;
-import com.ayouok.registry.impl.EtcdRegistry;
 import com.ayouok.server.HttpServer;
-import com.ayouok.server.VertxHttpServer;
+import com.ayouok.server.http.VertxHttpServer;
 import com.ayouok.service.UserService;
 import com.ayouok.service.impl.UserServiceImpl;
 

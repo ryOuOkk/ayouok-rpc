@@ -17,7 +17,7 @@ import java.io.IOException;
 /**
  * @author ayouok
  * @create 2025-02-18-22:13
- * @desc 协议消息编码器
+ * @desc 协议消息解码器
  */
 @Slf4j
 public class ProtocolMessageDecoder {

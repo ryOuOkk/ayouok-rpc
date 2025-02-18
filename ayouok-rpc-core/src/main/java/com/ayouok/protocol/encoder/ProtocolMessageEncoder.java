@@ -38,8 +38,8 @@ public class ProtocolMessageEncoder {
             Serializer serializer = SerializerFactory.getInstance(enumByKey.getValue());
             //序列化请求体
             byte[] bodyBytes = serializer.serialize(protocolMessage.getBody());
-            buffer.appendBytes(bodyBytes);
             buffer.appendInt(bodyBytes.length);
+            buffer.appendBytes(bodyBytes);
         } catch (IOException e) {
             log.error("ProtocolMessageEncoder encode error");
             throw new RuntimeException(e);

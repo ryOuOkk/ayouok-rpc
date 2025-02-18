@@ -1,12 +1,16 @@
 package com.ayouok.protocol.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author ayouok
  * @create 2025-02-18-21:20
  * @desc 消息协议
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class ProtocolMessage<T> {
     /**
@@ -17,6 +21,7 @@ public class ProtocolMessage<T> {
      * 消息体
      */
     private T body;
+
 
     @Data
     public static class Header {

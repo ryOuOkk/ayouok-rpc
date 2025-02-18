@@ -41,7 +41,7 @@ public class ProtocolMessageEncoder {
             buffer.appendBytes(bodyBytes);
             buffer.appendInt(bodyBytes.length);
         } catch (IOException e) {
-            log.info("ProtocolMessageEncoder encode error");
+            log.error("ProtocolMessageEncoder encode error");
             throw new RuntimeException(e);
         }
         return buffer;

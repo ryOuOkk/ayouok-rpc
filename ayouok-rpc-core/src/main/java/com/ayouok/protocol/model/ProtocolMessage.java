@@ -8,6 +8,14 @@ import lombok.NoArgsConstructor;
  * @author ayouok
  * @create 2025-02-18-21:20
  * @desc 消息协议
+ * 请求头 17个字节长度
+ *  -魔数 1个字节长度
+ *  -版本号 1个字节长度
+ *  -序列化器 1个字节长度
+ *  -消息类型 1个字节长度
+ *  -状态 1个字节长度
+ *  -请求id 8个字节长度
+ *  -数据长度 4个字节长度
  */
 @AllArgsConstructor
 @NoArgsConstructor

@@ -46,11 +46,4 @@ public class VertxTcpServer implements HttpServer {
         return "hello tcpRpc".getBytes();
     }
 
-    public static void main(String[] args) {
-        try {
-            new VertxTcpServer().doStart(8080);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

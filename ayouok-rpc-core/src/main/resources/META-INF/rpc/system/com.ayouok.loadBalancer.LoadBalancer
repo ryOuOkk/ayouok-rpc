@@ -1,0 +1,3 @@
+roundRobin=com.ayouok.loadbalancer.impl.RoundRobinLoadBalancer
+random=com.ayouok.loadbalancer.impl.RandomLoadBalancer
+consistentHash=com.ayouok.loadbalancer.impl.ConsistentHashLoadBalancer

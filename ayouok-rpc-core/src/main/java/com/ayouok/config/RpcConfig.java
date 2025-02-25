@@ -1,5 +1,7 @@
 package com.ayouok.config;
 
+import com.ayouok.loadbalancer.LoadBalancer;
+import com.ayouok.loadbalancer.constant.LoadBalancerKeys;
 import com.ayouok.serializer.SerializerKeys;
 import lombok.Data;
 
@@ -41,6 +43,13 @@ public class RpcConfig {
      */
     private String serializer = SerializerKeys.JDK;
 
+    /**
+     * 注册中心配置
+     */
     private RegistryConfig registryConfig = new RegistryConfig();
+    /**
+     * 负载均衡
+     */
+    private String loadBalancer = LoadBalancerKeys.CONSISTENT_HASH;
 
 }

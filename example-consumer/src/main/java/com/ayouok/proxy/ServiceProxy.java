@@ -3,6 +3,8 @@ package com.ayouok.proxy;
 import cn.hutool.core.collection.CollectionUtil;
 import com.ayouok.RpcApplication;
 import com.ayouok.config.RpcConfig;
+import com.ayouok.loadbalancer.LoadBalancer;
+import com.ayouok.loadbalancer.LoadBalancerFactory;
 import com.ayouok.model.RpcRequest;
 import com.ayouok.model.RpcResponse;
 import com.ayouok.model.ServiceMetaInfo;
@@ -13,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -26,13 +29,8 @@ public class ServiceProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         //构造请求
-        RpcRequest rpcRequest = RpcRequest.builder()
-                .serviceName(method.getDeclaringClass().getName())
-                .methodName(method.getName())
-                .parameterTypes(method.getParameterTypes())
-                .args(args)
-                .build();
-        //获取注册中心地址
+        RpcRequest rpcRequest = RpcRequest.builder().serviceName(method.getDeclaringClass().getName()).methodName(method.getName()).parameterTypes(method.getParameterTypes()).args(args).build();
+        //获取服务
         ServiceMetaInfo serviceMetaInfo = getProviderService(rpcRequest.getServiceName());
         try {
             //发送tcp请求
@@ -53,9 +51,14 @@ public class ServiceProxy implements InvocationHandler {
         registry.init(rpcConfig.getRegistryConfig());
         //获取服务元数据并返回
         List<ServiceMetaInfo> serviceMetaInfos = registry.serviceDiscovery(serviceName);
-        if (CollectionUtil.isEmpty(serviceMetaInfos)){
+        if (CollectionUtil.isEmpty(serviceMetaInfos)) {
             throw new RuntimeException("没有找到服务");
         }
-        return serviceMetaInfos.get(0);
+        //将请求接口路径封装
+        HashMap<String, Object> requestParams = new HashMap<>();
+        requestParams.put("methodName", serviceName);
+        //获取负载均衡实例
+        LoadBalancer loadBalancer = LoadBalancerFactory.getInstance(rpcConfig.getLoadBalancer());
+        return loadBalancer.select(requestParams, serviceMetaInfos);
     }
 }

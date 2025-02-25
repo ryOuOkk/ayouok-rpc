@@ -5,6 +5,8 @@ import com.ayouok.RpcApplication;
 import com.ayouok.config.RpcConfig;
 import com.ayouok.fault.retry.RetryStrategy;
 import com.ayouok.fault.retry.RetryStrategyFactory;
+import com.ayouok.fault.tolerant.TolerantStrategy;
+import com.ayouok.fault.tolerant.TolerantStrategyFactory;
 import com.ayouok.loadbalancer.LoadBalancer;
 import com.ayouok.loadbalancer.LoadBalancerFactory;
 import com.ayouok.model.RpcRequest;
@@ -37,12 +39,15 @@ public class ServiceProxy implements InvocationHandler {
         try {
             //发送tcp请求
             // 重试策略
-            RetryStrategy retryStrategy = RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
+            RetryStrategy retryStrategy = RetryStrategyFactory.getInstance(RpcApplication.getRpcConfig().getRetryStrategy());
             // 发送请求
             RpcResponse rpcResponse = retryStrategy.doRetry(() -> VertxTcpClient.doRequest(rpcRequest, serviceMetaInfo));
             return rpcResponse.getData();
         } catch (Exception e) {
             log.error("VertxTcpClient 调用失败");
+            // 容错机制
+            TolerantStrategy tolerantStrategy = TolerantStrategyFactory.getInstance(RpcApplication.getRpcConfig().getTolerantStrategy());
+            tolerantStrategy.doTolerant(null, e);
         }
         return null;
     }

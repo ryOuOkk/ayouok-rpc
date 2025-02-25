@@ -2,6 +2,7 @@ package com.ayouok.config;
 
 import com.ayouok.constant.LoadBalancerKeys;
 import com.ayouok.constant.RetryStrategyKeys;
+import com.ayouok.constant.TolerantStrategyKeys;
 import com.ayouok.serializer.SerializerKeys;
 import lombok.Data;
 
@@ -55,5 +56,9 @@ public class RpcConfig {
      * 重试策略
      */
     private String retryStrategy = RetryStrategyKeys.NO;
+    /**
+     * 容错机制
+     */
+    private String tolerantStrategy = TolerantStrategyKeys.FAIL_FAST;
 
 }

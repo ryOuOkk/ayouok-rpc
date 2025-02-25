@@ -1,0 +1,4 @@
+failBack=com.ayouok.fault.tolerant.FailBackTolerantStrategy
+failFast=com.ayouok.fault.tolerant.FailFastTolerantStrategy
+failOver=com.ayouok.fault.tolerant.FailOverTolerantStrategy
+failSafe=com.ayouok.fault.tolerant.FailSafeTolerantStrategy

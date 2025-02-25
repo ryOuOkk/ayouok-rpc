@@ -1,0 +1,2 @@
+no=com.ayouok.fault.retry.impl.NoRetryStrategy
+fixedInterval=com.ayouok.fault.retry.impl.FixedIntervalRetryStrategy

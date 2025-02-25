@@ -1,7 +1,7 @@
 package com.ayouok.config;
 
-import com.ayouok.loadbalancer.LoadBalancer;
-import com.ayouok.loadbalancer.constant.LoadBalancerKeys;
+import com.ayouok.constant.LoadBalancerKeys;
+import com.ayouok.constant.RetryStrategyKeys;
 import com.ayouok.serializer.SerializerKeys;
 import lombok.Data;
 
@@ -51,5 +51,9 @@ public class RpcConfig {
      * 负载均衡
      */
     private String loadBalancer = LoadBalancerKeys.CONSISTENT_HASH;
+    /**
+     * 重试策略
+     */
+    private String retryStrategy = RetryStrategyKeys.NO;
 
 }

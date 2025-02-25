@@ -3,6 +3,8 @@ package com.ayouok.proxy;
 import cn.hutool.core.collection.CollectionUtil;
 import com.ayouok.RpcApplication;
 import com.ayouok.config.RpcConfig;
+import com.ayouok.fault.retry.RetryStrategy;
+import com.ayouok.fault.retry.RetryStrategyFactory;
 import com.ayouok.loadbalancer.LoadBalancer;
 import com.ayouok.loadbalancer.LoadBalancerFactory;
 import com.ayouok.model.RpcRequest;
@@ -34,7 +36,10 @@ public class ServiceProxy implements InvocationHandler {
         ServiceMetaInfo serviceMetaInfo = getProviderService(rpcRequest.getServiceName());
         try {
             //发送tcp请求
-            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, serviceMetaInfo);
+            // 重试策略
+            RetryStrategy retryStrategy = RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
+            // 发送请求
+            RpcResponse rpcResponse = retryStrategy.doRetry(() -> VertxTcpClient.doRequest(rpcRequest, serviceMetaInfo));
             return rpcResponse.getData();
         } catch (Exception e) {
             log.error("VertxTcpClient 调用失败");

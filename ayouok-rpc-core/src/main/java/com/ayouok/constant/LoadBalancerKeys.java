@@ -1,4 +1,4 @@
-package com.ayouok.loadbalancer.constant;
+package com.ayouok.constant;
 
 /**
  * @author dxn

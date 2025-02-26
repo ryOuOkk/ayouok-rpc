@@ -1,5 +1,6 @@
 package com.ayouok;
 
+import com.ayouok.bootstarp.ConsumerBootstrap;
 import com.ayouok.model.User;
 import com.ayouok.proxy.ServiceProxyFactory;
 import com.ayouok.service.UserService;
@@ -10,18 +11,12 @@ import com.ayouok.service.UserService;
  */
 public class EasyConsumerExample {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        //初始化rpc
+        ConsumerBootstrap.init();
+        //获取代理
         UserService userService = ServiceProxyFactory.getProxy(UserService.class);
-        User user = new User();
-        user.setName("yupi");
-        Integer number = userService.getNumber();
-        System.out.println(number);
-        // 调用
-        User newUser = userService.getUser(user);
-        if (newUser != null) {
-            System.out.println(newUser.getName());
-        } else {
-            System.out.println("user == null");
-        }
+        User user = userService.getUser(new User("bayou"));
+        System.out.println(user);
     }
 }

@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SPI 加载器（支持键值对映射）
+ * @author ayouokk
  */
 @Slf4j
 public class SpiLoader {
@@ -20,12 +21,12 @@ public class SpiLoader {
     /**
      * 存储已加载的类：接口名 =>（key => 实现类）
      */
-    private static Map<String, Map<String, Class<?>>> loaderMap = new ConcurrentHashMap<>();
+    private static final Map<String, Map<String, Class<?>>> LOADER_MAP = new ConcurrentHashMap<>();
 
     /**
      * 对象实例缓存（避免重复 new），类路径 => 对象实例，单例模式
      */
-    private static Map<String, Object> instanceCache = new ConcurrentHashMap<>();
+    private static final Map<String, Object> INSTANCE_CACHE = new ConcurrentHashMap<>();
 
     /**
      * 系统 SPI 目录
@@ -67,7 +68,7 @@ public class SpiLoader {
      */
     public static <T> T getInstance(Class<?> tClass, String key) {
         String tClassName = tClass.getName();
-        Map<String, Class<?>> keyClassMap = loaderMap.get(tClassName);
+        Map<String, Class<?>> keyClassMap = LOADER_MAP.get(tClassName);
         if (keyClassMap == null) {
             throw new RuntimeException(String.format("SpiLoader 未加载 %s 类型", tClassName));
         }
@@ -78,15 +79,19 @@ public class SpiLoader {
         Class<?> implClass = keyClassMap.get(key);
         // 从实例缓存中加载指定类型的实例
         String implClassName = implClass.getName();
-        if (!instanceCache.containsKey(implClassName)) {
+        if (!INSTANCE_CACHE.containsKey(implClassName)) {
             try {
-                instanceCache.put(implClassName, implClass.newInstance());
-            } catch (InstantiationException | IllegalAccessException e) {
+                INSTANCE_CACHE.put(implClassName, implClass.getDeclaredConstructor().newInstance());
+            } catch (Exception e) {
                 String errorMsg = String.format("%s 类实例化失败", implClassName);
                 throw new RuntimeException(errorMsg, e);
             }
         }
-        return (T) instanceCache.get(implClassName);
+        Object instance = INSTANCE_CACHE.get(implClassName);
+        if (!tClass.isInstance(instance)){
+            throw new RuntimeException(String.format("实例 %s 不是 %s 类型", implClassName, tClassName));
+        }
+        return (T) instance;
     }
 
     /**
@@ -120,7 +125,7 @@ public class SpiLoader {
                 }
             }
         }
-        loaderMap.put(loadClass.getName(), keyClassMap);
+        LOADER_MAP.put(loadClass.getName(), keyClassMap);
         return keyClassMap;
     }
 }
